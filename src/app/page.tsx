@@ -3,8 +3,9 @@
 import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
 import LaunchCard from "@/components/LaunchCard";
+import LaunchSkeleton from "@/components/LaunchSkeleton";
 import useLaunches from "@/hooks/useLaunches";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Search } from "lucide-react";
 
 export default function Home() {
@@ -15,22 +16,25 @@ export default function Home() {
   const [result, setResult] = useState("");
   const [rocket, setRocket] = useState("");
 
-  const filtered = launches.filter((launch) => {
-    const matchName = launch.name.toLowerCase().includes(search.toLowerCase());
+  // Memorizar el filtrado para evitar recalcular en cada renderizado no relacionado
+  const filtered = useMemo(() => {
+    return launches.filter((launch) => {
+      const matchName = launch.name.toLowerCase().includes(search.toLowerCase());
 
-    const launchYear = new Date(launch.date_utc).getFullYear().toString();
-    const matchYear = year ? launchYear === year : true;
+      const launchYear = new Date(launch.date_utc).getFullYear().toString();
+      const matchYear = year ? launchYear === year : true;
 
-    const matchResult = result
-      ? result === "success"
-        ? launch.success
-        : !launch.success
-      : true;
+      const matchResult = result
+        ? result === "success"
+          ? launch.success
+          : !launch.success
+        : true;
 
-    const matchRocket = rocket ? launch.rocketName === rocket : true;
+      const matchRocket = rocket ? launch.rocketName === rocket : true;
 
-    return matchName && matchYear && matchResult && matchRocket;
-  });
+      return matchName && matchYear && matchResult && matchRocket;
+    });
+  }, [launches, search, year, result, rocket]);
 
   return (
     <div className="h-screen overflow-hidden bg-[#111315] text-white">
@@ -104,8 +108,10 @@ export default function Home() {
               {/* Solo esta parte scrollea */}
               <div className="min-h-0 flex-1 overflow-y-auto pr-1 pb-6">
                 {loading && (
-                  <div className="rounded-3xl border border-white/10 bg-[#14171a] p-6 text-white/70">
-                    Cargando lanzamientos...
+                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+                    {[...Array(6)].map((_, i) => (
+                      <LaunchSkeleton key={i} />
+                    ))}
                   </div>
                 )}
 

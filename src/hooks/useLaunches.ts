@@ -13,30 +13,38 @@ export default function useLaunches() {
   useEffect(() => {
     const fetchLaunches = async () => {
       try {
-        const { data } = await api.get("/launches");
-        const enriched = await Promise.all(
-          data.map(async (launch: any) => {
-            // Ejecución de 2 peticiones en paralelo: cohete y plataforma de lanzamiento
-            const [rocketRes, padRes] = await Promise.all([
-              api.get(`/rockets/${launch.rocket}`),
-              api.get(`/launchpads/${launch.launchpad}`),
-            ]);
+        // Petición única usando el endpoint /query con populate para obtener cohetes y plataformas
+        const { data } = await api.post("/launches/query", {
+          query: {},
+          options: {
+            pagination: false,
+            populate: [
+              {
+                path: "rocket",
+                select: { name: 1 },
+              },
+              {
+                path: "launchpad",
+                select: { name: 1, latitude: 1, longitude: 1 },
+              },
+            ],
+          },
+        });
 
-            return {
-              id: launch.id,
-              name: launch.name,
-              date_utc: launch.date_utc,
-              success: launch.success,
-              rocketName: rocketRes.data.name,       // Nombre del cohete
-              launchpadName: padRes.data.name,       // Nombre de la plataforma
-              latitude: padRes.data.latitude,        // Latitud de la plataforma
-              longitude: padRes.data.longitude,      // Longitud de la plataforma
-            };
-          })
-        );
+        const enriched: EnrichedLaunch[] = data.docs.map((launch: any) => ({
+          id: launch.id,
+          name: launch.name,
+          date_utc: launch.date_utc,
+          success: launch.success,
+          rocketName: launch.rocket?.name || "Desconocido",
+          launchpadName: launch.launchpad?.name || "Desconocido",
+          latitude: launch.launchpad?.latitude || 0,
+          longitude: launch.launchpad?.longitude || 0,
+        }));
 
         setLaunches(enriched);
       } catch (err) {
+        console.error("Error al obtener lanzamientos:", err);
         setError("Error al cargar los lanzamientos");
       } finally {
         setLoading(false);

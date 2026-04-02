@@ -2,7 +2,7 @@
 
 import { Rocket, Calendar, MapPin, Star } from "lucide-react";
 import { EnrichedLaunch } from "@/types/launch";
-import { useEffect, useState } from "react";
+import { useFavorites } from "@/hooks/useFavorites";
 
 type Props = {
   launch: EnrichedLaunch;
@@ -10,44 +10,28 @@ type Props = {
 };
 
 export default function LaunchCard({ launch, onRemoveFavorite }: Props) {
-  const [isFavorite, setIsFavorite] = useState(false);
+  const { isFavorite, toggleFavorite } = useFavorites();
+  const active = isFavorite(launch.id);
 
-  useEffect(() => {
-    const storedFavorites = localStorage.getItem("favorites");
-    if (storedFavorites) {
-      const favorites = JSON.parse(storedFavorites) as string[];
-      setIsFavorite(favorites.includes(launch.id));
-    }
-  }, [launch.id]);
-
-  const toggleFavorite = () => {
-    const stored = localStorage.getItem("favorites");
-    let favorites = stored ? JSON.parse(stored) : [];
-
-    if (favorites.includes(launch.id)) {
-      favorites = favorites.filter((id: string) => id !== launch.id);
-      setIsFavorite(false);
-      localStorage.setItem("favorites", JSON.stringify(favorites));
-
-      if (onRemoveFavorite) onRemoveFavorite(launch.id);
-    } else {
-      favorites.push(launch.id);
-      setIsFavorite(true);
-      localStorage.setItem("favorites", JSON.stringify(favorites));
+  const handleToggle = () => {
+    toggleFavorite(launch.id);
+    // Si se estaba quitando de favoritos y hay un callback de remoción, lo llamamos
+    if (active && onRemoveFavorite) {
+      onRemoveFavorite(launch.id);
     }
   };
 
   return (
     <article className="relative overflow-hidden rounded-[28px] border border-white/10 bg-[#14171a] p-6 shadow-[0_10px_30px_rgba(0,0,0,0.18)]">
       <button
-        onClick={toggleFavorite}
+        onClick={handleToggle}
         className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-[#1b1f24] text-white/80 transition-colors duration-200 hover:bg-[#22272e] hover:text-white"
         aria-label="Agregar a favoritos"
       >
         <Star
           size={18}
-          fill={isFavorite ? "currentColor" : "none"}
-          className={isFavorite ? "text-white" : "text-white/80"}
+          fill={active ? "currentColor" : "none"}
+          className={active ? "text-white" : "text-white/80"}
         />
       </button>
 

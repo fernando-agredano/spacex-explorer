@@ -1,67 +1,83 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Heart, Search, Star } from "lucide-react";
 import LaunchCard from "@/components/LaunchCard";
+import LaunchSkeleton from "@/components/LaunchSkeleton";
 import { EnrichedLaunch } from "@/types/launch";
 import Navbar from "@/components/Navbar";
 import api from "@/lib/axios";
+import { useFavorites } from "@/hooks/useFavorites";
 
 export default function FavoritosPage() {
-  const [favorites, setFavorites] = useState<EnrichedLaunch[]>([]);
+  const { favorites: favoriteIds } = useFavorites();
+  const [favoriteLaunches, setFavoriteLaunches] = useState<EnrichedLaunch[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    const fetchFavorites = async () => {
+    // Si no hay IDs guardados, no hace falta llamar a la API
+    if (favoriteIds.length === 0) {
+      setFavoriteLaunches([]);
+      setLoading(false);
+      return;
+    }
+
+    const fetchFavoritesData = async () => {
       try {
-        const storedIds = JSON.parse(localStorage.getItem("favorites") || "[]");
+        // Petición única optimizada para traer todos los favoritos por sus IDs
+        const { data } = await api.post("/launches/query", {
+          query: {
+            _id: { $in: favoriteIds },
+          },
+          options: {
+            pagination: false,
+            populate: [
+              {
+                path: "rocket",
+                select: { name: 1 },
+              },
+              {
+                path: "launchpad",
+                select: { name: 1, latitude: 1, longitude: 1 },
+              },
+            ],
+          },
+        });
 
-        const enrichedFavorites = await Promise.all(
-          storedIds.map(async (id: string) => {
-            const { data: launch } = await api.get(`/launches/${id}`);
+        const enriched: EnrichedLaunch[] = data.docs.map((launch: any) => ({
+          id: launch.id,
+          name: launch.name,
+          date_utc: launch.date_utc,
+          success: launch.success,
+          rocketName: launch.rocket?.name || "Desconocido",
+          launchpadName: launch.launchpad?.name || "Desconocido",
+          latitude: launch.launchpad?.latitude || 0,
+          longitude: launch.launchpad?.longitude || 0,
+        }));
 
-            const [rocketRes, padRes] = await Promise.all([
-              api.get(`/rockets/${launch.rocket}`),
-              api.get(`/launchpads/${launch.launchpad}`),
-            ]);
-
-            return {
-              id: launch.id,
-              name: launch.name,
-              date_utc: launch.date_utc,
-              success: launch.success,
-              rocketName: rocketRes.data.name,
-              launchpadName: padRes.data.name,
-              latitude: padRes.data.latitude,
-              longitude: padRes.data.longitude,
-            };
-          }),
-        );
-
-        setFavorites(enrichedFavorites);
+        setFavoriteLaunches(enriched);
       } catch (error) {
-        console.error("Error cargando favoritos:", error);
+        console.error("Error cargando detalles de favoritos:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchFavorites();
-  }, []);
+    fetchFavoritesData();
+  }, [favoriteIds]);
 
   const handleRemove = (id: string) => {
-    const updated = favorites.filter((launch) => launch.id !== id);
-    setFavorites(updated);
-
-    const stored = JSON.parse(localStorage.getItem("favorites") || "[]");
-    const newFavorites = stored.filter((favId: string) => favId !== id);
-    localStorage.setItem("favorites", JSON.stringify(newFavorites));
+    // Actualización local para respuesta instantánea de la UI
+    setFavoriteLaunches((prev) => prev.filter((launch) => launch.id !== id));
   };
 
-  const filtered = favorites.filter((launch) =>
-    launch.name.toLowerCase().includes(search.toLowerCase()),
-  );
+  // Memorizar el filtrado de favoritos
+  const filtered = useMemo(() => {
+    return favoriteLaunches.filter((launch) =>
+      launch.name.toLowerCase().includes(search.toLowerCase()),
+    );
+  }, [favoriteLaunches, search]);
 
   return (
     <div className="min-h-screen bg-[#111315] text-white">
@@ -103,8 +119,10 @@ export default function FavoritosPage() {
           {/* Content */}
           <section className="rounded-[32px] border border-white/10 bg-[#14171a] p-4 shadow-[0_10px_40px_rgba(0,0,0,0.22)] sm:p-5 lg:p-6">
             {loading ? (
-              <div className="rounded-[28px] border border-white/10 bg-[#1a1d21] p-8 text-center text-white/60">
-                Cargando favoritos...
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+                {[...Array(3)].map((_, i) => (
+                  <LaunchSkeleton key={i} />
+                ))}
               </div>
             ) : filtered.length === 0 ? (
               <div className="rounded-[28px] border border-white/10 bg-[#1a1d21] p-10 text-center">
