@@ -5,25 +5,21 @@ import { EnrichedLaunch } from "@/types/launch";
 import { useEffect, useState } from "react";
 
 type Props = {
-  launch: EnrichedLaunch; // Información del lanzamiento
-  onRemoveFavorite?: (id: string) => void; // Callback para remover un lanzamiento de favoritos
+  launch: EnrichedLaunch;
+  onRemoveFavorite?: (id: string) => void;
 };
 
-// Componente LaunchCard: muestra la tarjeta con la info de un lanzamiento
 export default function LaunchCard({ launch, onRemoveFavorite }: Props) {
   const [isFavorite, setIsFavorite] = useState(false);
 
   useEffect(() => {
-    // Obtenemos la lista de favoritos del localStorage
     const storedFavorites = localStorage.getItem("favorites");
     if (storedFavorites) {
       const favorites = JSON.parse(storedFavorites) as string[];
-      // Verificamos si este lanzamiento ya está en favoritos
       setIsFavorite(favorites.includes(launch.id));
     }
   }, [launch.id]);
 
-  // Función para agregar o quitar un lanzamiento de favoritos
   const toggleFavorite = () => {
     const stored = localStorage.getItem("favorites");
     let favorites = stored ? JSON.parse(stored) : [];
@@ -42,35 +38,62 @@ export default function LaunchCard({ launch, onRemoveFavorite }: Props) {
   };
 
   return (
-    <div className="relative bg-secondary/70 rounded-2xl p-6 shadow-lg hover:scale-105 transition transform duration-300">
+    <article className="relative overflow-hidden rounded-[28px] border border-white/10 bg-[#14171a] p-6 shadow-[0_10px_30px_rgba(0,0,0,0.18)]">
       <button
         onClick={toggleFavorite}
-        className="absolute top-3 right-3 text-yellow-400 hover:text-yellow-500"
+        className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-[#1b1f24] text-white/80 transition-colors duration-200 hover:bg-[#22272e] hover:text-white"
         aria-label="Agregar a favoritos"
       >
-        <Star fill={isFavorite ? "currentColor" : "none"} size={20} />
+        <Star
+          size={18}
+          fill={isFavorite ? "currentColor" : "none"}
+          className={isFavorite ? "text-white" : "text-white/80"}
+        />
       </button>
-      <h3 className="text-lg font-bold text-primary mb-2">{launch.name}</h3>
-      <div className="flex items-center gap-2 text-foreground/70 text-sm mb-1">
-        <Calendar size={16} />
-        {new Date(launch.date_utc).toLocaleDateString("es-ES")}
+
+      <div className="pr-12">
+        <h3 className="text-[28px] font-semibold leading-none tracking-tight text-white">
+          {launch.name}
+        </h3>
+
+        <div className="mt-5 space-y-3">
+          <div className="flex items-start gap-3 text-sm text-white/72">
+            <div className="mt-0.5 text-white/55">
+              <Calendar size={16} />
+            </div>
+            <span>{new Date(launch.date_utc).toLocaleDateString("es-ES")}</span>
+          </div>
+
+          <div className="flex items-start gap-3 text-sm text-white/72">
+            <div className="mt-0.5 text-white/55">
+              <Rocket size={16} />
+            </div>
+            <span>{launch.rocketName}</span>
+          </div>
+
+          <div className="flex items-start gap-3 text-sm leading-6 text-white/72">
+            <div className="mt-0.5 text-white/55">
+              <MapPin size={16} />
+            </div>
+            <span>
+              {launch.launchpadName} ({launch.latitude.toFixed(2)},{" "}
+              {launch.longitude.toFixed(2)})
+            </span>
+          </div>
+        </div>
+
+        <div className="mt-6">
+          <span
+            className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
+              launch.success
+                ? "border border-emerald-500/20 bg-emerald-500/15 text-emerald-300"
+                : "border border-red-500/20 bg-red-500/15 text-red-300"
+            }`}
+          >
+            {launch.success ? "Éxito" : "Fracaso"}
+          </span>
+        </div>
       </div>
-      <div className="flex items-center gap-2 text-foreground/70 text-sm mb-1">
-        <Rocket size={16} />
-        {launch.rocketName}
-      </div>
-      <div className="flex items-center gap-2 text-foreground/70 text-sm">
-        <MapPin size={16} />
-        {launch.launchpadName} ({launch.latitude.toFixed(2)},{" "}
-        {launch.longitude.toFixed(2)})
-      </div>
-      <span
-        className={`mt-3 inline-block px-3 py-1 rounded-full text-xs ${
-          launch.success ? "bg-green-600" : "bg-red-600"
-        } text-white`}
-      >
-        {launch.success ? "Éxito" : "Fracaso"}
-      </span>
-    </div>
+    </article>
   );
 }

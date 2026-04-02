@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Heart, Search, Star } from "lucide-react";
 import LaunchCard from "@/components/LaunchCard";
 import { EnrichedLaunch } from "@/types/launch";
 import Navbar from "@/components/Navbar";
@@ -13,79 +14,127 @@ export default function FavoritosPage() {
 
   useEffect(() => {
     const fetchFavorites = async () => {
-      // 1. Obtener los IDs de favoritos guardados en localStorage
-      const storedIds = JSON.parse(localStorage.getItem("favorites") || "[]");
+      try {
+        const storedIds = JSON.parse(localStorage.getItem("favorites") || "[]");
 
-      // 2. Para cada ID, hacer varias peticiones y enriquecer los datos del lanzamiento
-      const enrichedFavorites = await Promise.all(
-        storedIds.map(async (id: string) => {
-          // Obtener datos del lanzamiento específico
-          const { data: launch } = await api.get(`/launches/${id}`);
-          // Obtener datos adicionales del cohete y la base de lanzamiento
-          const [rocketRes, padRes] = await Promise.all([
-            api.get(`/rockets/${launch.rocket}`),
-            api.get(`/launchpads/${launch.launchpad}`),
-          ]);
+        const enrichedFavorites = await Promise.all(
+          storedIds.map(async (id: string) => {
+            const { data: launch } = await api.get(`/launches/${id}`);
 
-          return {
-            id: launch.id,
-            name: launch.name,
-            date_utc: launch.date_utc,
-            success: launch.success,
-            rocketName: rocketRes.data.name,
-            launchpadName: padRes.data.name,
-            latitude: padRes.data.latitude,
-            longitude: padRes.data.longitude,
-          };
-        })
-      );
+            const [rocketRes, padRes] = await Promise.all([
+              api.get(`/rockets/${launch.rocket}`),
+              api.get(`/launchpads/${launch.launchpad}`),
+            ]);
 
-      // 3. Guardar en el estado los favoritos
-      setFavorites(enrichedFavorites);
-      setLoading(false); // Datos cargados
+            return {
+              id: launch.id,
+              name: launch.name,
+              date_utc: launch.date_utc,
+              success: launch.success,
+              rocketName: rocketRes.data.name,
+              launchpadName: padRes.data.name,
+              latitude: padRes.data.latitude,
+              longitude: padRes.data.longitude,
+            };
+          }),
+        );
+
+        setFavorites(enrichedFavorites);
+      } catch (error) {
+        console.error("Error cargando favoritos:", error);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    fetchFavorites(); // Ejecutar la función
+    fetchFavorites();
   }, []);
 
-  // Controlar la eliminación de un favorito
   const handleRemove = (id: string) => {
-    // 1. Eliminar del estado
     const updated = favorites.filter((launch) => launch.id !== id);
     setFavorites(updated);
 
-    // 2. Actualizar el localStorage
     const stored = JSON.parse(localStorage.getItem("favorites") || "[]");
     const newFavorites = stored.filter((favId: string) => favId !== id);
     localStorage.setItem("favorites", JSON.stringify(newFavorites));
   };
 
-  // Filtrar favoritos por nombre con la barra de búsqueda
   const filtered = favorites.filter((launch) =>
-    launch.name.toLowerCase().includes(search.toLowerCase())
+    launch.name.toLowerCase().includes(search.toLowerCase()),
   );
 
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      <Navbar search={search} setSearch={setSearch} />
-      <div className="p-6">
-        <h1 className="text-2xl font-bold text-primary mb-6">Mis Favoritos</h1>
-        {loading ? (
-          <p>Cargando favoritos...</p>
-        ) : filtered.length === 0 ? (
-          <p>No se encontraron resultados.</p>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filtered.map((launch) => (
-              <LaunchCard
-                key={launch.id}
-                launch={launch}
-                onRemoveFavorite={handleRemove}
+    <div className="min-h-screen bg-[#111315] text-white">
+      <Navbar />
+
+      <main className="px-4 py-6 sm:px-6 lg:px-8">
+        <div className="space-y-6">
+          {/* Header */}
+          <section className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-[#181b1f] px-4 py-2 text-sm text-white/70">
+                <Heart size={16} className="text-white/50" />
+                {loading
+                  ? "Cargando..."
+                  : `${filtered.length} favorito${filtered.length === 1 ? "" : "s"}`}
+              </div>
+
+              <div className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-[#181b1f] px-4 py-2 text-sm text-white/70">
+                <Star size={16} className="text-white/50" />
+                SpaceX Saved Launches
+              </div>
+            </div>
+          </section>
+
+          {/* Search */}
+          <section className="max-w-xl">
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
+              <input
+                type="text"
+                placeholder="Buscar favorito..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="h-14 w-full rounded-2xl border border-white/10 bg-[#181b1f] pl-12 pr-4 text-base text-white placeholder:text-white/35 outline-none transition-all duration-300 focus:border-white/20 focus:bg-[#1d2126]"
               />
-            ))}
-          </div>
-        )}
-      </div>
-    </main>
+            </div>
+          </section>
+
+          {/* Content */}
+          <section className="rounded-[32px] border border-white/10 bg-[#14171a] p-4 shadow-[0_10px_40px_rgba(0,0,0,0.22)] sm:p-5 lg:p-6">
+            {loading ? (
+              <div className="rounded-[28px] border border-white/10 bg-[#1a1d21] p-8 text-center text-white/60">
+                Cargando favoritos...
+              </div>
+            ) : filtered.length === 0 ? (
+              <div className="rounded-[28px] border border-white/10 bg-[#1a1d21] p-10 text-center">
+                <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#20242a] text-white/70">
+                  <Heart size={24} />
+                </div>
+
+                <h2 className="text-xl font-semibold text-white">
+                  No hay favoritos por mostrar
+                </h2>
+
+                <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-white/55">
+                  Aún no has guardado lanzamientos o no hay coincidencias con tu
+                  búsqueda actual.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+                {filtered.map((launch) => (
+                  <LaunchCard
+                    key={launch.id}
+                    launch={launch}
+                    onRemoveFavorite={handleRemove}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
+        </div>
+      </main>
+    </div>
   );
 }
