@@ -55,7 +55,15 @@ export default function MapaPage() {
 
         const launchpadMap = new Map<string, Launchpad>();
 
-        padsData.forEach((pad: any) => {
+        padsData.forEach((pad: {
+          id: string;
+          name: string;
+          full_name: string;
+          region: string;
+          timezone: string;
+          latitude: number;
+          longitude: number;
+        }) => {
           launchpadMap.set(pad.id, {
             id: pad.id,
             name: pad.name,
@@ -68,7 +76,13 @@ export default function MapaPage() {
           });
         });
 
-        allLaunches.forEach((launch: any) => {
+        allLaunches.forEach((launch: {
+          id: string;
+          name: string;
+          date_utc: string;
+          success: boolean | null;
+          launchpad: string;
+        }) => {
           const pad = launchpadMap.get(launch.launchpad);
           if (pad) {
             pad.launches.push({
@@ -283,11 +297,13 @@ export default function MapaPage() {
       }
     }
 
+    const currentMarkers = markersRef.current;
+
     return () => {
-      markersRef.current.forEach((marker) => marker.setMap(null));
-      markersRef.current.clear();
+      currentMarkers.forEach((marker) => marker.setMap(null));
+      currentMarkers.clear();
     };
-  }, [loading, pads]);
+  }, [loading, pads, selectedPadId]);
 
   return (
     <div className="h-screen overflow-hidden bg-[#111315] text-white">

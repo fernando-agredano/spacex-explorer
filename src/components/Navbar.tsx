@@ -1,5 +1,5 @@
 import { useRouter, usePathname } from "next/navigation";
-import { Rocket, Star, Home, MapPin } from "lucide-react";
+import { Rocket, Star, MapPin } from "lucide-react";
 
 export default function Navbar() {
   const router = useRouter();

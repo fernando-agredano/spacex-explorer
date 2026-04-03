@@ -9,12 +9,14 @@ Una plataforma moderna, rápida y elegante para explorar el archivo de misiones 
 ## ✨ Características Principales
 
 - **🔍 Búsqueda Dinámica:** Filtra misiones por nombre, año de lanzamiento, modelo de cohete o resultado de la misión en tiempo real.
-- **❤️ Gestión de Favoritos:** Guarda tus lanzamientos preferidos. Gracias al uso de **React Context**, tus favoritos se sincronizan instantáneamente en todas las vistas de la aplicación.
-- **📍 Mapa Interactivo:** Visualiza la ubicación exacta de las plataformas de lanzamiento utilizando la integración de **Google Maps JS API**.
+- **❤️ Gestión de Favoritos:** Guarda tus lanzamientos preferidos. Gracias al uso de **React Context**, tus favoritos se sincronizan instantáneamente en todas las vistas.
+- **📍 Mapa Interactivo:** Visualiza la ubicación exacta de las plataformas de lanzamiento con **Google Maps JS API**.
 - **⚡ Rendimiento Optimizado:** 
-  - **Single Request Architecture:** Uso del endpoint `/query` de SpaceX API para obtener datos complejos (cohetes y plataformas) en una sola petición HTTP.
-  - **Data Memoization:** Implementación de `useMemo` para evitar recalcular filtros innecesariamente.
-  - **Skeleton Screens:** Experiencia de carga suave y profesional que elimina los saltos de interfaz.
+  - **Single Request Architecture:** Uso de `/query` para obtener datos complejos en una sola petición.
+  - **Data Memoization:** Uso de `useMemo` para optimizar filtros.
+  - **Skeleton Screens:** Carga suave y profesional.
+- **🐳 Docker Ready:** Preparado para despliegue en contenedores.
+- **🚀 CI/CD Integrado:** Pipeline automático para asegurar la calidad del código.
 
 ---
 
@@ -22,61 +24,89 @@ Una plataforma moderna, rápida y elegante para explorar el archivo de misiones 
 
 | Tecnología | Descripción |
 | :--- | :--- |
-| **Next.js 15** | El framework de React para la web, utilizando el App Router. |
-| **React 19** | Última versión de la librería, aprovechando las mejoras de concurrencia. |
-| **Tailwind CSS 4** | Estilado de última generación con una arquitectura basada en variables CSS. |
-| **TypeScript** | Tipado estático riguroso para un código más seguro y mantenible. |
-| **Lucide React** | Set de iconos minimalistas y consistentes. |
-| **Axios** | Cliente HTTP configurado para interactuar con la SpaceX v4 API. |
+| **Next.js 15** | Framework de React profesional con App Router. |
+| **React 19** | Última versión con mejoras de rendimiento y concurrencia. |
+| **Tailwind CSS 4** | Estilado moderno con arquitectura basada en variables CSS. |
+| **TypeScript** | Tipado estático riguroso para mayor seguridad. |
+| **Docker** | Contenerización para despliegues consistentes. |
+| **GitHub Actions** | Automatización de flujos de CI/CD. |
+
+---
+
+## 🐳 Docker (Contenerización)
+
+Puedes ejecutar la aplicación en un contenedor Docker siguiendo estos pasos:
+
+### 1. Construir la imagen
+```bash
+docker build -t spacex-explorer .
+```
+
+### 2. Correr el contenedor
+```bash
+docker run -p 3000:3000 --env-file .env.local spacex-explorer
+```
+> [!NOTE]
+> La aplicación estará disponible en [http://localhost:3000](http://localhost:3000). Asegúrate de que el archivo `.env.local` contenga tu `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`.
+
+---
+
+## 📐 Calidad de Código
+
+Mantenemos un estándar alto de calidad mediante herramientas de análisis estático.
+
+### Linter
+Para verificar la calidad del código y seguir las mejores prácticas:
+```bash
+npm run lint
+```
+
+---
+
+## 🚀 CI/CD Pipeline
+
+El proyecto incluye un flujo de trabajo de **GitHub Actions** configurado en `.github/workflows/ci.yml`.
+
+**El flujo se activa en:**
+- Cada `push` a las ramas `main` o `master`.
+- Cada `pull_request` hacia `main` o `master`.
+
+**Fases del Pipeline:**
+1. 📥 **Install:** Instalación limpia de dependencias.
+2. 🔍 **Lint:** Verificación de reglas de estilo y errores estáticos con ESLint.
+3. 🏗️ **Build:** Compilación optimizada para producción.
 
 ---
 
 ## 🏗️ Arquitectura del Proyecto
 
-El proyecto sigue una estructura modular y escalable:
-
 ```text
 src/
 ├── app/            # Rutas, Layouts y Páginas (App Router)
-├── components/     # Componentes de UI reutilizables y Skeletons
+├── components/     # UI reusable, Layout y Skeletons
 ├── hooks/          # Lógica de negocio (useLaunches, useFavorites)
-├── lib/            # Configuraciones (Axios instance)
+├── lib/            # Configuraciones globales (Axios)
 └── types/          # Definiciones de interfaces TypeScript
+.github/workflows/  # Automatización de CI/CD
 ```
 
 ---
 
-## 🚀 Instalación y Configuración
+## 🏗️ Instalación Local (Sin Docker)
 
-Sigue estos pasos para ejecutar el proyecto localmente:
-
-### 1. Clonar y Preparar
-```bash
-git clone https://github.com/tu-usuario/spacex-explorer.git
-cd spacex-explorer
-npm install
-```
-
-### 2. Variables de Entorno
-Crea un archivo `.env.local` en la raíz del proyecto y añade tu clave de Google Maps:
-```env
-NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=tu_api_key_aqui
-```
-
-### 3. Ejecutar
-```bash
-npm run dev
-```
-La aplicación estará disponible en [http://localhost:3000](http://localhost:3000).
+1. **Clonar:** `git clone https://github.com/tu-usuario/spacex-explorer.git`
+2. **Instalar:** `npm install`
+3. **Configurar:** Crea un archivo `.env.local` con `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`.
+4. **Ejecutar:** `npm run dev`
 
 ---
 
 ## ✅ Scripts Disponibles
 
 - `npm run dev` - Inicia el servidor de desarrollo.
-- `npm run build` - Crea la versión de producción optimizada.
-- `npm run start` - Inicia la aplicación compilada.
-- `npm run lint` - Ejecuta el linter para asegurar la calidad del código.
+- `npm run build` - Compilación optimizada para producción.
+- `npm run start` - Ejecuta la versión compilada.
+- `npm run lint` - Ejecuta el análisis estático de código.
 
 ---
 

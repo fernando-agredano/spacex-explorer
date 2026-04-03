@@ -45,16 +45,25 @@ export default function FavoritosPage() {
           },
         });
 
-        const enriched: EnrichedLaunch[] = data.docs.map((launch: any) => ({
-          id: launch.id,
-          name: launch.name,
-          date_utc: launch.date_utc,
-          success: launch.success,
-          rocketName: launch.rocket?.name || "Desconocido",
-          launchpadName: launch.launchpad?.name || "Desconocido",
-          latitude: launch.launchpad?.latitude || 0,
-          longitude: launch.launchpad?.longitude || 0,
-        }));
+        const enriched: EnrichedLaunch[] = data.docs.map(
+          (launch: {
+            id: string;
+            name: string;
+            date_utc: string;
+            success: boolean;
+            rocket?: { name: string };
+            launchpad?: { name: string; latitude: number; longitude: number };
+          }) => ({
+            id: launch.id,
+            name: launch.name,
+            date_utc: launch.date_utc,
+            success: launch.success,
+            rocketName: launch.rocket?.name || "Desconocido",
+            launchpadName: launch.launchpad?.name || "Desconocido",
+            latitude: launch.launchpad?.latitude || 0,
+            longitude: launch.launchpad?.longitude || 0,
+          }),
+        );
 
         setFavoriteLaunches(enriched);
       } catch (error) {

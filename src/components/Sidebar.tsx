@@ -56,7 +56,7 @@ export default function Sidebar({
       try {
         setLoadingRockets(true);
         const { data } = await api.get("/rockets");
-        setRockets(data.map((r: any) => r.name));
+        setRockets(data.map((r: { name: string }) => r.name));
       } catch (error) {
         console.error("Error cargando cohetes:", error);
       } finally {
