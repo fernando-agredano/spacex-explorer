@@ -1,7 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CalendarDays, CheckCircle2, Rocket, ChevronDown } from "lucide-react";
+import {
+  CalendarDays,
+  CheckCircle2,
+  ChevronDown,
+  Facebook,
+  Instagram,
+  Rocket,
+} from "lucide-react";
 import api from "@/lib/axios";
 
 interface SidebarProps {
@@ -151,6 +158,36 @@ export default function Sidebar({
               </option>
             ))}
           </SelectField>
+        </div>
+      </div>
+
+      <div className="mt-6 border-t border-white/10 pt-6">
+        <div className="flex w-full flex-col items-center gap-3">
+          <div className="flex w-full justify-center">
+            <p className="text-center text-xs font-medium uppercase tracking-[0.22em] pl-[0.22em] text-white/45">
+              Síguenos
+            </p>
+          </div>
+          <div className="flex justify-center gap-3">
+            <a
+              href="https://www.instagram.com/spacex"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-[#1a1d21] text-white transition-colors duration-300 hover:border-white/25 hover:bg-[#20242a]"
+              aria-label="Instagram de SpaceX"
+            >
+              <Instagram size={18} strokeWidth={1.75} />
+            </a>
+            <a
+              href="https://www.facebook.com/SpaceX"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-[#1a1d21] text-white transition-colors duration-300 hover:border-white/25 hover:bg-[#20242a]"
+              aria-label="Facebook de SpaceX"
+            >
+              <Facebook size={18} strokeWidth={1.75} />
+            </a>
+          </div>
         </div>
       </div>
     </aside>
